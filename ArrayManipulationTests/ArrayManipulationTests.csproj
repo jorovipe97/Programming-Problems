@@ -64,7 +64,7 @@
     <Content Include="TestVector1.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestVectors.csv">
+    <Content Include="TestVector2.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
