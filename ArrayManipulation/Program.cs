@@ -129,18 +129,16 @@ namespace ArrayManipulation
                 //operationList[i] = new int[3] { a, b, k };
 
                 // Iterates over each element beetween a-1 and b-1 in the main array
-                for (int j = 0; j < mainArray.Length; j++)
+                // then now iterations = a - b
+                for (int j = (a - 1); j < b; j++)
                 {
-                    // In each one of the 100 000 operation iterates over the 10 000 000 of items in the mainArray long array
+                    // In each one of the 100 000 operation iterates over the 10 000 000 of items in the worst case of the mainArray long array
                     // 100 000 * 10 000 000 = 1 000 000 000 000 iterations
-                    // If j >= a-1 and j <= b-1
-                    if (j >= (a - 1) && j <= (b - 1))
-                    {
-                        // mainArray[j] += k
-                        mainArray[j] += k;
-                        // This this values is grater than the latest maximum value found in array
-                        maxValue = (mainArray[j] > maxValue) ? mainArray[j] : maxValue;
-                    }
+
+                    // mainArray[j] += k
+                    mainArray[j] += k;
+                    // This this values is grater than the latest maximum value found in array
+                    maxValue = (mainArray[j] > maxValue) ? mainArray[j] : maxValue;
                 }
             }
 
