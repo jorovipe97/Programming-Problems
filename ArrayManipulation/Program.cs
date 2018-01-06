@@ -1,4 +1,7 @@
-﻿using System;
+﻿#define UNSAFE_MODE
+//#define IGNORE_ALGORITHM
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -59,6 +62,7 @@ So the required answer will be 200.
 namespace ArrayManipulation
 {
 
+
     // TODO: How to test, the perfomance of a c# code
 
     // An 1-indexed list is a list which is accesed from 1 instead of 0
@@ -86,8 +90,22 @@ namespace ArrayManipulation
             Console.ReadKey();
         }
 
+        /* Optimizations strategies
+         * 
+         * Strategy:
+         * Now the inner loop executes from a to b indexes of the main array.
+         * Result: Code now executes 2x faster, since TestVecrtor2.txt previously take 1000ms and now 450ms
+         * 
+         * Strategy:
+         * Acces the array in unsafe mode for improve perfomance
+         * Result: TestVector2.txt execution time come from 450ms to 360ms
+         * 
+         * Strategy:
+         * Loop two times over the main array first for save the operations in a jagged array and second for perform each operation
+         */
         public static void Sol()
         {
+#if !IGNORE_ALGORITHM
             // For test vecvtor 1
             string[] n_and_m = Console.ReadLine().Split(' ');
             // Array Lenght
@@ -114,6 +132,10 @@ namespace ArrayManipulation
             // Saving the operation info into an array
             for (int i = 0; i < m; i++)
             {
+                // If each iteration has 30ms, then
+                // 100 000 iterationts * 30ms = 3 000 000ms
+                // 3 000 000ms/1000ms = 3000s
+                // 3000s / 60s = 50minutes
                 // Iterates over 100 000 operation
 
                 // For each operation
@@ -125,24 +147,80 @@ namespace ArrayManipulation
                 int b = Convert.ToInt32(opInfo[1]);
                 int k = Convert.ToInt32(opInfo[2]);
 
-                // Save all the operations to perform
-                //operationList[i] = new int[3] { a, b, k };
+                // Let's to test if Array.Copy(...) performs the operations in O(1) time.
 
+
+
+                /*
+                 * Interesting posts for improve the perfomance of the following
+                 * 1. Buffer.Copy https://social.msdn.microsoft.com/Forums/en-US/42189513-2106-4467-af9a-3b1810509cc8/fastest-way-to-clone-an-array-of-ints?forum=csharplanguage
+                 * 2. Parallel Loops https://msdn.microsoft.com/en-us/library/ff963542.aspx
+                 * 3. amdahl's law
+                 * 4. Efficiently looping over an array http://tipsandtricks.runicsoft.com/CSharp/ArrayLooping.html
+                 * 
+                 * La ley de Amdahl se puede
+                 * interpretar de manera más
+                 * técnica, pero en términos simples,
+                 * significa que es el algoritmo el
+                 * que decide la mejora de
+                 * velocidad, no el número de
+                 * procesadores. Finalmente se
+                 * llega a un momento que no se
+                 * puede paralelizar más el algoritmo.
+                 */
+
+#if (UNSAFE_MODE)
+                int elementsToChange = b - a;
+                unsafe
+                {
+                    // The following fixed statement pins the location of the source and
+                    // target objects in memory so that they will not be moved by garbage
+                    // collection.
+                    fixed (long* arr = mainArray)
+                    {
+                        long* mainarr = arr + (a-1);
+                        int index = 0;
+                        while (index <= elementsToChange)
+                        {
+                            *mainarr = *mainarr + k;
+                            maxValue = (*mainarr > maxValue) ? *mainarr : maxValue;
+                            mainarr++;
+                            index++;
+                        }
+                    }
+                }
+#else
                 // Iterates over each element beetween a-1 and b-1 in the main array
-                // then now iterations = a - b
+                // then now iterations = b - a
                 for (int j = (a - 1); j < b; j++)
                 {
                     // In each one of the 100 000 operation iterates over the 10 000 000 of items in the worst case of the mainArray long array
                     // 100 000 * 10 000 000 = 1 000 000 000 000 iterations
 
+                    // TO-DO: Think in a better algorithm for gets the final max value in the array.
                     // mainArray[j] += k
                     mainArray[j] += k;
                     // This this values is grater than the latest maximum value found in array
                     maxValue = (mainArray[j] > maxValue) ? mainArray[j] : maxValue;
                 }
+                //int iterationsInnerLoop = b - a;
+#endif
             }
 
             Console.WriteLine(maxValue);
+#endif
+
+            long foo = 0;
+            for (long l = 0; l < 1000000; l++)
+            {
+                 foo += l;
+            }
+
+            for (long l = 0; l < 1000000; l++)
+            {
+                foo += l;
+            }
+
             //Console.ReadKey();
             //return maxValue;
         }
