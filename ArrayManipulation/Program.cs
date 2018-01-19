@@ -74,7 +74,8 @@ namespace ArrayManipulation
         static void Main(string[] args)
         {
             //ReadingFile();
-            Sol();
+            //Sol();
+            Sol2();
             /*newInputData = new StringReader(ReadingFile().ToString());
 
             originalReader = Console.In;
@@ -88,6 +89,20 @@ namespace ArrayManipulation
 
             Console.SetIn(originalReader);*/
             Console.ReadKey();
+        }
+
+        public static void Sol2()
+        {
+            string[] tokens_n = Console.ReadLine().Split(' ');
+            int n = Convert.ToInt32(tokens_n[0]);
+            int m = Convert.ToInt32(tokens_n[1]);
+            for (int a0 = 0; a0 < m; a0++) // Iterates over each operation
+            {
+                string[] tokens_a = Console.ReadLine().Split(' ');
+                int a = Convert.ToInt32(tokens_a[0]);
+                int b = Convert.ToInt32(tokens_a[1]);
+                int k = Convert.ToInt32(tokens_a[2]);
+            }
         }
 
         /* Optimizations strategies
@@ -128,6 +143,7 @@ namespace ArrayManipulation
             //int[][] operationList = new int[m][];
             string[] opInfo;
             long maxValue = 0;
+            int[] operationLists = new int[m*3];
 
             // Saving the operation info into an array
             for (int i = 0; i < m; i++)
@@ -146,6 +162,12 @@ namespace ArrayManipulation
                 int a = Convert.ToInt32(opInfo[0]);
                 int b = Convert.ToInt32(opInfo[1]);
                 int k = Convert.ToInt32(opInfo[2]);
+                operationLists[i * 3 + 0] = a;
+                operationLists[i * 3 + 1] = b;
+                operationLists[i * 3 + 2] = k;
+                // 4bytes * 3 * 100 000 = 1 200 000 bytes
+                // = 1 171.875 kilo bytes
+                // = 1.14 mega bytes
 
                 // Let's to test if Array.Copy(...) performs the operations in O(1) time.
 
@@ -169,27 +191,61 @@ namespace ArrayManipulation
                  * puede paralelizar más el algoritmo.
                  */
 
+            }
+
+
+            int operationCount = operationLists.GetLength(0) / 3; // Pseudo m x 3 array
 #if (UNSAFE_MODE)
-                int elementsToChange = b - a;
-                unsafe
+            unsafe
+            {
+                // The following fixed statement pins the location of the source and
+                // target objects in memory so that they will not be moved by garbage
+                // collection.
+                fixed (long* arr = mainArray)
                 {
-                    // The following fixed statement pins the location of the source and
-                    // target objects in memory so that they will not be moved by garbage
-                    // collection.
-                    fixed (long* arr = mainArray)
+                    fixed (int* operationListPtr = operationLists)
                     {
-                        long* mainarr = arr + (a-1);
-                        int index = 0;
-                        while (index <= elementsToChange)
+                        int i = 0;
+                        int* opArr = operationListPtr;
+                        int a = 0;
+                        int b = 0;
+                        int k = 0;
+                        while (i < operationCount) // Read each operation
                         {
-                            *mainarr = *mainarr + k;
-                            maxValue = (*mainarr > maxValue) ? *mainarr : maxValue;
-                            mainarr++;
-                            index++;
+                            // ********************************
+                            // **** EXTRACT EACH OPERATION ****
+                            // ********************************
+                            a = *(opArr + (i * 3 + 0)); // a = opArr[i][0]
+                            b = *(opArr + (i * 3 + 1)); // b = opArr[i][1]
+                            k = *(opArr + (i * 3 + 2)); // k = opArr[i][2]
+                            i++;
+
+                            // ********************************
+                            // **** EXECUTE EACH OPERATION ****
+                            // ********************************
+                            int elementsToChange = b - a;
+                            long* mainarr = arr;
+                            int index = a - 1;
+                            int upperLimitOp = index + elementsToChange;
+                            while (index <= upperLimitOp)
+                            {
+                                *(mainarr + index) = (*(mainarr + index)) + k;
+                                maxValue = (*(mainarr + index) > maxValue) ? *(mainarr + index) : maxValue;
+                                //mainarr++;
+                                index++;
+                            }
+
                         }
-                    }
+                        
+                    }                        
                 }
+            }
 #else
+            for (int i = 0; i < operationCount; i++) // Iterate for each operation
+            {
+                int a = operationLists[i * 3 + 0];
+                int b = operationLists[i * 3 + 1];
+                int k = operationLists[i * 3 + 2];
                 // Iterates over each element beetween a-1 and b-1 in the main array
                 // then now iterations = b - a
                 for (int j = (a - 1); j < b; j++)
@@ -204,22 +260,13 @@ namespace ArrayManipulation
                     maxValue = (mainArray[j] > maxValue) ? mainArray[j] : maxValue;
                 }
                 //int iterationsInnerLoop = b - a;
-#endif
             }
+
+#endif
+
 
             Console.WriteLine(maxValue);
 #endif
-
-            long foo = 0;
-            for (long l = 0; l < 1000000; l++)
-            {
-                 foo += l;
-            }
-
-            for (long l = 0; l < 1000000; l++)
-            {
-                foo += l;
-            }
 
             //Console.ReadKey();
             //return maxValue;

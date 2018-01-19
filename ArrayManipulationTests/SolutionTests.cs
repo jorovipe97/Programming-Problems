@@ -116,7 +116,7 @@ namespace ArrayManipulation.Tests
             string expected = "";
             // The ./../../ is for search the test vectors in root project directory instead of the bin/debug directory which be ignored by .gitignore
             // About using keyword: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/using-statement
-            using (FileStream vectorTest = File.Open("TestVector2.txt", FileMode.Open, FileAccess.Read))
+            using (FileStream vectorTest = File.Open("TestVector3.txt", FileMode.Open, FileAccess.Read))
             {
                 // The file can be readed
                 if (vectorTest.CanRead)
